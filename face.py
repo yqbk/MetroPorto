@@ -3,9 +3,6 @@ import threading
 import face_recognition
 import cv2
 from pynput import keyboard
-from flask import Flask, Response, jsonify
-from flask_restful import Resource, Api
-from flask_cors import CORS
 
 
 
@@ -18,48 +15,24 @@ from flask_cors import CORS
 # cv2 is *not* required to use the face_recognition library. It's only required if you want to run this
 # specific demo. If you have trouble installing it, try any of the other demos that don't require it instead.
 
-######################################################################
-#
-# Init variables - used as ''global''
-#
-######################################################################
-
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
 # Load a sample picture and learn how to recognize it.
-# obama_image = face_recognition.load_image_file("/images/user-2.jpg")
-# obama_image = face_recognition.load_image_file("user-2.jpg")
-u1_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-1.jpg"))[0]
-u2_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-2.jpg"))[0]
-u3_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-3.jpg"))[0]
-u4_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-4.jpg"))[0]
-u5_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-5.jpg"))[0]
+obama_image = face_recognition.load_image_file("me.jpg")
+# obama_image = face_recognition.load_image_file("michal-t.jpg")
+obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
 
 
 # Create arrays of known face encodings and their names
 known_face_encodings = [
-    u1_face_encoding,
-    u2_face_encoding,
-    u3_face_encoding,
-    u4_face_encoding,
-    u5_face_encoding,
+    obama_face_encoding,
 ]
-
 known_face_names = [
-    "User 1",
-    "User 2",
-    "User 3",
-    "User 4",
-    "User 5",
+    "Me",
 ]
 
-######################################################################
-#
-# Definition of keyboard listener
-#
-######################################################################
-
+face_change = False
 
 def on_press(key):
     try:
@@ -70,32 +43,18 @@ def on_press(key):
             key))
 
 def on_release(key):
-    global known_face_names
+    global face_change
     print('{0} released'.format(
         key))
-    key_as_int = int(key.char)
-    print (key_as_int)
-    print (key_as_int in [1,2,3,4,5])
-    if key_as_int in [1,2,3,4,5]:
-        if known_face_names[key_as_int - 1] is not None:
-            known_face_names[key_as_int - 1] = None
-        else:
-            known_face_names[key_as_int - 1] = "User " + str(key_as_int)
-    print(known_face_names)
+    if key == keyboard.Key.shift:
+        face_change = not face_change
+
 
 listener = keyboard.Listener(
         on_press=on_press,
         on_release=on_release)
 
-
-######################################################################
-#
-# Definition of face recognition system
-#
-######################################################################
-
 def face_rec():
-    print("face_rec start")
     face_locations = []
     face_encodings = []
     face_names = []
@@ -150,12 +109,13 @@ def face_rec():
             cv2.putText(frame, name, (left + 10, bottom + 15), font, 1.0, (255, 255, 255), 1)
 
             global face_change
-            if name != "Unknown" and name is not None:
-                image = cv2.imread("images/love.png", -1)
+            if name == "Me" and not face_change:
+                image = cv2.imread("love.png", -1)
             else:
-                image = cv2.imread("images/angry.png", -1)
+                image = cv2.imread("angry.png", -1)
 
             emoji = cv2.resize(image, (right-left, bottom-top))
+
 
             x_offset=left-1
             y_offset=top-1
@@ -185,74 +145,11 @@ def face_rec():
     video_capture.release()
     cv2.destroyAllWindows()
 
+t = threading.Thread(target=face_rec)
+t.daemon = True
 
-######################################################################
-#
-# Definition of flask server app
-#
-######################################################################
+listener.start()
+t.start()
 
-
-def server() :
-    print("start server")
-    app = Flask(__name__)
-    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-    api = Api(app)
-
-
-    # class Stops(Resource):
-    #     def get(self):
-    #         return Response(db.getStops(), content_type='application/json; charset=utf-8')
-    #
-    #
-    # class Prediction(Resource):
-    #     def get(self, departure_time, is_workday, id_start, id_end):
-    #         return Response(db.getPrediction(id_start, id_end, departure_time, is_workday != 0), content_type='application/json; charset=utf-8')
-    #
-    #
-    # class PredictionsAll(Resource):
-    #     def get(self, departure_time, is_workday):
-    #         return Response(db.getPredictionsAll(departure_time, is_workday != 0), content_type='application/json; charset=utf-8')
-
-
-    # api.add_resource(Stops, '/api/stops')
-    # api.add_resource(Prediction, '/api/predictions/<int:departure_time>/<int:is_workday>/<int:id_start>/<int:id_end>')
-    # api.add_resource(PredictionsAll, '/api/predictions/<int:departure_time>/<int:is_workday>')
-
-    @app.route('/api/')
-    def hello_world():
-        global face_change
-        face_change = not face_change
-        return '<b>CCU GROUP 9</b>'
-
-    # @app.before_first_request
-    # def setup():
-    #     db.connect()
-
-
-    app.run(host="localhost",debug=False, use_reloader=False)
-
-
-
-######################################################################
-#
-# Starting threads: face_recognition display / keyboard listener / flask server app
-#
-######################################################################
-
-
-if __name__ == "__main__":
-    face_rec_thread = threading.Thread(target=face_rec)
-    face_rec_thread.daemon = True
-
-    # server_app = threading.Thread(target=server)
-    # server_app.daemon = True
-
-
-    listener.start()
-    face_rec_thread.start()
-    # server_app.start()
-
-    listener.join()
-    face_rec_thread.join()
-    # server_app.join()
+listener.join()
+t.join()
