@@ -3,6 +3,9 @@ import threading
 import face_recognition
 import cv2
 from pynput import keyboard
+from flask import Flask, Response, jsonify
+from flask_restful import Resource, Api
+from flask_cors import CORS
 
 
 
@@ -183,6 +186,53 @@ def face_rec():
     cv2.destroyAllWindows()
 
 
+######################################################################
+#
+# Definition of flask server app
+#
+######################################################################
+
+
+def server() :
+    print("start server")
+    app = Flask(__name__)
+    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+    api = Api(app)
+
+
+    # class Stops(Resource):
+    #     def get(self):
+    #         return Response(db.getStops(), content_type='application/json; charset=utf-8')
+    #
+    #
+    # class Prediction(Resource):
+    #     def get(self, departure_time, is_workday, id_start, id_end):
+    #         return Response(db.getPrediction(id_start, id_end, departure_time, is_workday != 0), content_type='application/json; charset=utf-8')
+    #
+    #
+    # class PredictionsAll(Resource):
+    #     def get(self, departure_time, is_workday):
+    #         return Response(db.getPredictionsAll(departure_time, is_workday != 0), content_type='application/json; charset=utf-8')
+
+
+    # api.add_resource(Stops, '/api/stops')
+    # api.add_resource(Prediction, '/api/predictions/<int:departure_time>/<int:is_workday>/<int:id_start>/<int:id_end>')
+    # api.add_resource(PredictionsAll, '/api/predictions/<int:departure_time>/<int:is_workday>')
+
+    @app.route('/api/')
+    def hello_world():
+        global face_change
+        face_change = not face_change
+        return '<b>CCU GROUP 9</b>'
+
+    # @app.before_first_request
+    # def setup():
+    #     db.connect()
+
+
+    app.run(host="localhost",debug=False, use_reloader=False)
+
+
 
 ######################################################################
 #
@@ -194,6 +244,10 @@ def face_rec():
 if __name__ == "__main__":
     face_rec_thread = threading.Thread(target=face_rec)
     face_rec_thread.daemon = True
+
+    # server_app = threading.Thread(target=server)
+    # server_app.daemon = True
+
 
     listener.start()
     face_rec_thread.start()
