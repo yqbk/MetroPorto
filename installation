@@ -1,3 +1,5 @@
 With Linux Debian + anaconda:
 -conda install -c loopbio gtk2-feature
 -conda install -c loopbio pkg-config
+
+... not finished
