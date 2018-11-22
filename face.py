@@ -15,24 +15,48 @@ from pynput import keyboard
 # cv2 is *not* required to use the face_recognition library. It's only required if you want to run this
 # specific demo. If you have trouble installing it, try any of the other demos that don't require it instead.
 
+######################################################################
+#
+# Init variables - used as ''global''
+#
+######################################################################
+
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
 # Load a sample picture and learn how to recognize it.
-obama_image = face_recognition.load_image_file("me.jpg")
-# obama_image = face_recognition.load_image_file("michal-t.jpg")
-obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
+# obama_image = face_recognition.load_image_file("/images/user-2.jpg")
+# obama_image = face_recognition.load_image_file("user-2.jpg")
+u1_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-1.jpg"))[0]
+u2_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-2.jpg"))[0]
+u3_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-3.jpg"))[0]
+u4_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-4.jpg"))[0]
+u5_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-5.jpg"))[0]
 
 
 # Create arrays of known face encodings and their names
 known_face_encodings = [
-    obama_face_encoding,
-]
-known_face_names = [
-    "Me",
+    u1_face_encoding,
+    u2_face_encoding,
+    u3_face_encoding,
+    u4_face_encoding,
+    u5_face_encoding,
 ]
 
-face_change = False
+known_face_names = [
+    "User 1",
+    "User 2",
+    "User 3",
+    "User 4",
+    "User 5",
+]
+
+######################################################################
+#
+# Definition of keyboard listener
+#
+######################################################################
+
 
 def on_press(key):
     try:
@@ -43,18 +67,32 @@ def on_press(key):
             key))
 
 def on_release(key):
-    global face_change
+    global known_face_names
     print('{0} released'.format(
         key))
-    if key == keyboard.Key.shift:
-        face_change = not face_change
-
+    key_as_int = int(key.char)
+    print (key_as_int)
+    print (key_as_int in [1,2,3,4,5])
+    if key_as_int in [1,2,3,4,5]:
+        if known_face_names[key_as_int - 1] is not None:
+            known_face_names[key_as_int - 1] = None
+        else:
+            known_face_names[key_as_int - 1] = "User " + str(key_as_int)
+    print(known_face_names)
 
 listener = keyboard.Listener(
         on_press=on_press,
         on_release=on_release)
 
+
+######################################################################
+#
+# Definition of face recognition system
+#
+######################################################################
+
 def face_rec():
+    print("face_rec start")
     face_locations = []
     face_encodings = []
     face_names = []
@@ -109,13 +147,12 @@ def face_rec():
             cv2.putText(frame, name, (left + 10, bottom + 15), font, 1.0, (255, 255, 255), 1)
 
             global face_change
-            if name == "Me" and not face_change:
-                image = cv2.imread("love.png", -1)
+            if name != "Unknown" and name is not None:
+                image = cv2.imread("images/love.png", -1)
             else:
-                image = cv2.imread("angry.png", -1)
+                image = cv2.imread("images/angry.png", -1)
 
             emoji = cv2.resize(image, (right-left, bottom-top))
-
 
             x_offset=left-1
             y_offset=top-1
@@ -145,11 +182,23 @@ def face_rec():
     video_capture.release()
     cv2.destroyAllWindows()
 
-t = threading.Thread(target=face_rec)
-t.daemon = True
 
-listener.start()
-t.start()
 
-listener.join()
-t.join()
+######################################################################
+#
+# Starting threads: face_recognition display / keyboard listener / flask server app
+#
+######################################################################
+
+
+if __name__ == "__main__":
+    face_rec_thread = threading.Thread(target=face_rec)
+    face_rec_thread.daemon = True
+
+    listener.start()
+    face_rec_thread.start()
+    # server_app.start()
+
+    listener.join()
+    face_rec_thread.join()
+    # server_app.join()
