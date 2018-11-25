@@ -174,6 +174,19 @@ def face_rec():
         # Display the resulting image
         cv2.imshow('Video', frame)
 
+        key = cv2.waitKey(33)
+
+        if key > 0:
+            key_as_int = int(key) - 48
+            # print (key_as_int)
+            # print (key_as_int in [1,2,3,4,5])
+            if key_as_int in [1,2,3,4,5]:
+                if known_face_names[key_as_int - 1] is not None:
+                    known_face_names[key_as_int - 1] = None
+                else:
+                    known_face_names[key_as_int - 1] = "User " + str(key_as_int)
+            print(known_face_names)
+
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -192,13 +205,14 @@ def face_rec():
 
 
 if __name__ == "__main__":
-    face_rec_thread = threading.Thread(target=face_rec)
-    face_rec_thread.daemon = True
+    face_rec()
+    # face_rec_thread = threading.Thread(target=face_rec)
+    # face_rec_thread.daemon = True
 
-    listener.start()
-    face_rec_thread.start()
+    # listener.start()
+    # face_rec_thread.start()
     # server_app.start()
 
-    listener.join()
-    face_rec_thread.join()
+    # listener.join()
+    # face_rec_thread.join()
     # server_app.join()
