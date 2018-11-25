@@ -5,6 +5,8 @@ from pyzbar import pyzbar
 import cv2
 from pynput import keyboard
 
+import sys
+
 
 
 # This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
@@ -92,8 +94,9 @@ listener = keyboard.Listener(
 #
 ######################################################################
 
-def face_rec():
+def face_rec(mode):
     print("face_rec start")
+    print(mode)
     face_locations = []
     face_encodings = []
     face_names = []
@@ -152,11 +155,18 @@ def face_rec():
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left + 10, bottom + 15), font, 1.0, (255, 255, 255), 1)
 
+            unknown_face_emoji = ""
+
+            if mode == "neutral":
+                unknown_face_emoji = "images/neutral.png"
+            else:
+                unknown_face_emoji = "images/angry.png"
+
             global face_change
             if name != "Unknown" and name is not None:
                 image = cv2.imread("images/love.png", -1)
             else:
-                image = cv2.imread("images/angry.png", -1)
+                image = cv2.imread(unknown_face_emoji, -1)
 
             emoji = cv2.resize(image, (right-left, bottom-top))
 
@@ -239,7 +249,11 @@ def face_rec():
 
 
 if __name__ == "__main__":
-    face_rec()
+
+    if len(sys.argv) == 2:
+        face_rec(str(sys.argv[1]))
+    else:
+        face_rec("")
     # face_rec_thread = threading.Thread(target=face_rec)
     # face_rec_thread.daemon = True
 
