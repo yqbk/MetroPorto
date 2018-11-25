@@ -28,11 +28,11 @@ video_capture = cv2.VideoCapture(0)
 # Load a sample picture and learn how to recognize it.
 # obama_image = face_recognition.load_image_file("/images/user-2.jpg")
 # obama_image = face_recognition.load_image_file("user-2.jpg")
-u1_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-1.jpg"))[0]
-u2_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-2.jpg"))[0]
-u3_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-3.jpg"))[0]
-u4_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-4.jpg"))[0]
-u5_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user-5.jpg"))[0]
+u1_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user1.jpg"))[0]
+u2_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user2.jpg"))[0]
+u3_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user3.jpg"))[0]
+u4_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user4.jpg"))[0]
+u5_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user5.jpg"))[0]
 
 
 # Create arrays of known face encodings and their names
@@ -45,11 +45,11 @@ known_face_encodings = [
 ]
 
 known_face_names = [
-    "User 1",
-    "User 2",
-    "User 3",
-    "User 4",
-    "User 5",
+    None,
+    None,
+    None,
+    None,
+    None,
 ]
 
 ######################################################################
@@ -78,7 +78,7 @@ def on_release(key):
         if known_face_names[key_as_int - 1] is not None:
             known_face_names[key_as_int - 1] = None
         else:
-            known_face_names[key_as_int - 1] = "User " + str(key_as_int)
+            known_face_names[key_as_int - 1] = "user" + str(key_as_int)
     print(known_face_names)
 
 listener = keyboard.Listener(
@@ -131,6 +131,7 @@ def face_rec():
                     name = known_face_names[first_match_index]
 
                 face_names.append(name)
+                print(face_names)
 
         process_this_frame = not process_this_frame
 
@@ -176,29 +177,38 @@ def face_rec():
 
             # cv2.imwrite(emoji, frame)
 
-                barcodes = pyzbar.decode(frame)
 
-        # loop over the detected barcodes
+
+        ######################################################################
+        # Barcode detection
+        ######################################################################
+        barcodes = pyzbar.decode(frame)
         for barcode in barcodes:
             # extract the bounding box location of the barcode and draw the
             # bounding box surrounding the barcode on the image
             (x, y, w, h) = barcode.rect
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-        
             barcodeData = barcode.data.decode("utf-8")
-        
-            # draw the barcode data and barcode type on the image
-            text = barcodeData 
-            cv2.putText(frame, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
+            cv2.putText(frame, barcodeData, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, (0, 0, 255), 2)
         
             # print the barcode type and data to the terminal
             print(barcodeData)
+            # TODO use regex to detect "userX" string
+            if len(barcodeData) == 5 and barcodeData not in known_face_names:
+                # if barcode data has a number ex. user3 -> 3
+                index = int(list(filter(str.isdigit, barcodeData))[0])
+                if index > 0 and index < 6:
+                    known_face_names.insert(index-1, barcodeData)
+            print(known_face_names)
+
 
         # Display the resulting image
         cv2.imshow('Video', frame)
 
         key = cv2.waitKey(33)
+
+        print(key)
 
         if key > 0:
             key_as_int = int(key) - 48
@@ -208,7 +218,7 @@ def face_rec():
                 if known_face_names[key_as_int - 1] is not None:
                     known_face_names[key_as_int - 1] = None
                 else:
-                    known_face_names[key_as_int - 1] = "User " + str(key_as_int)
+                    known_face_names[key_as_int - 1] = "user" + str(key_as_int)
             print(known_face_names)
 
         # Hit 'q' on the keyboard to quit!
