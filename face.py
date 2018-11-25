@@ -1,6 +1,7 @@
 import threading
 
 import face_recognition
+from pyzbar import pyzbar
 import cv2
 from pynput import keyboard
 
@@ -102,6 +103,10 @@ def face_rec():
         # Grab a single frame of video
         ret, frame = video_capture.read()
 
+
+
+
+
         # Resize frame of video to 1/4 size for faster face recognition processing
         small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
 
@@ -170,6 +175,25 @@ def face_rec():
             # frame[y_offset:y_offset+emoji.shape[0], x_offset:x_offset+emoji.shape[1]] = emoji
 
             # cv2.imwrite(emoji, frame)
+
+                barcodes = pyzbar.decode(frame)
+
+        # loop over the detected barcodes
+        for barcode in barcodes:
+            # extract the bounding box location of the barcode and draw the
+            # bounding box surrounding the barcode on the image
+            (x, y, w, h) = barcode.rect
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        
+            barcodeData = barcode.data.decode("utf-8")
+        
+            # draw the barcode data and barcode type on the image
+            text = barcodeData 
+            cv2.putText(frame, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (0, 0, 255), 2)
+        
+            # print the barcode type and data to the terminal
+            print(barcodeData)
 
         # Display the resulting image
         cv2.imshow('Video', frame)
