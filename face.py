@@ -178,8 +178,12 @@ def face_rec(mode):
             alpha_s = emoji[:, :, 3] / 255.0
             alpha_l = 1.0 - alpha_s
 
-            for c in range(0, 3):
-                frame[y1:y2, x1:x2, c] = (alpha_s * emoji[:, :, c] + alpha_l * frame[y1:y2, x1:x2, c])
+            try:
+                for c in range(0, 3):
+                    frame[y1:y2, x1:x2, c] = (alpha_s * emoji[:, :, c] + alpha_l * frame[y1:y2, x1:x2, c])            
+            except:
+              print("An exception occurred")
+ 
 
             # frame = cv2.add(frame, emoji)
             # x_offset=y_offset=50
