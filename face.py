@@ -218,6 +218,7 @@ def face_rec(mode):
 
 
         # Display the resulting image
+        cv2.namedWindow('Video', cv2.WINDOW_NORMAL)
         cv2.imshow('Video', frame)
 
         key = cv2.waitKey(33)
