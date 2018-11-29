@@ -73,7 +73,10 @@ def on_release(key):
     global known_face_names
     print('{0} released'.format(
         key))
-    key_as_int = int(key.char)
+    try:
+        key_as_int = int(key.char)
+    except:
+        key_as_int = 1000
     print (key_as_int)
     print (key_as_int in [1,2,3,4,5])
     if key_as_int in [1,2,3,4,5]:
@@ -149,7 +152,6 @@ def face_rec():
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left + 10, bottom + 15), font, 1.0, (255, 255, 255), 1)
 
-            global face_change
             if name != "Unknown" and name is not None:
                 image = cv2.imread("images/love.png", -1)
             else:
@@ -164,9 +166,11 @@ def face_rec():
 
             alpha_s = emoji[:, :, 3] / 255.0
             alpha_l = 1.0 - alpha_s
-
-            for c in range(0, 3):
-                frame[y1:y2, x1:x2, c] = (alpha_s * emoji[:, :, c] + alpha_l * frame[y1:y2, x1:x2, c])
+            try:
+                for c in range(0, 3):
+                    frame[y1:y2, x1:x2, c] = (alpha_s * emoji[:, :, c] + alpha_l * frame[y1:y2, x1:x2, c])
+            except:
+                print("Error")
 
             # frame = cv2.add(frame, emoji)
             # x_offset=y_offset=50
@@ -175,6 +179,7 @@ def face_rec():
             # cv2.imwrite(emoji, frame)
 
         # Display the resulting image
+        cv2.namedWindow('Video', cv2.WINDOW_NORMAL)
         cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
@@ -221,8 +226,9 @@ def server() :
 
     @app.route('/api/')
     def hello_world():
-        global face_change
-        face_change = not face_change
+        # key = {}
+        # key.char = '2'
+        # on_release(key)
         return '<b>CCU GROUP 9</b>'
 
     # @app.before_first_request
@@ -245,14 +251,14 @@ if __name__ == "__main__":
     face_rec_thread = threading.Thread(target=face_rec)
     face_rec_thread.daemon = True
 
-    # server_app = threading.Thread(target=server)
-    # server_app.daemon = True
+    server_app = threading.Thread(target=server)
+    server_app.daemon = True
 
 
     listener.start()
     face_rec_thread.start()
-    # server_app.start()
+    server_app.start()
 
     listener.join()
     face_rec_thread.join()
-    # server_app.join()
+    server_app.join()
