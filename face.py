@@ -160,7 +160,7 @@ def face_rec(mode):
             if mode == "neutral":
                 unknown_face_emoji = "images/neutral.png"
             else:
-                unknown_face_emoji = "images/angry.png"
+                unknown_face_emoji = "images/angry_face_imp.png"
 
             global face_change
             if name != "Unknown" and name is not None:
@@ -201,11 +201,12 @@ def face_rec(mode):
             # extract the bounding box location of the barcode and draw the
             # bounding box surrounding the barcode on the image
             (x, y, w, h) = barcode.rect
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 6)
+            print()
             barcodeData = barcode.data.decode("utf-8")
-            cv2.putText(frame, barcodeData, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (0, 0, 255), 2)
-        
+            cv2.putText(frame, barcodeData + "-Validated", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (0, 255, 0), 2)
+
             # print the barcode type and data to the terminal
             print(barcodeData)
             # TODO use regex to detect "userX" string
