@@ -6,6 +6,7 @@ import cv2
 from pynput import keyboard
 
 import sys
+import os
 
 
 
@@ -102,9 +103,13 @@ def face_rec(mode):
     face_names = []
     process_this_frame = True
 
+    duration = 1  # second
+    freq = 440  # Hz
+
     while True:
         # Grab a single frame of video
         ret, frame = video_capture.read()
+        # os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 
 
 
