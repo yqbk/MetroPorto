@@ -7,6 +7,9 @@ Example: pushing `1` turns off "User 1" - his emoji is bad. Next pushing the sam
 
 
 ### Run sript:
+
+```pip install -r requirements.txt```
+
 ```python3 face.py```
 
 options:

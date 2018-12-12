@@ -1,12 +1,11 @@
-import threading
-
-import face_recognition
-from pyzbar import pyzbar
-import cv2
-from pynput import keyboard
-
 import sys
 import os
+from multiprocessing import Process
+
+import cv2
+import face_recognition
+from pynput import keyboard
+from pyzbar import pyzbar
 
 
 
@@ -89,6 +88,11 @@ listener = keyboard.Listener(
         on_release=on_release)
 
 
+def play_sys_audio():
+    duration = 0.6  # second
+    freq = 880  # Hz
+    os.system('play -t alsa --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
+
 ######################################################################
 #
 # Definition of face recognition system
@@ -102,18 +106,12 @@ def face_rec(mode):
     face_encodings = []
     face_names = []
     process_this_frame = True
+    current_emoji = ''
 
-    duration = 1  # second
-    freq = 440  # Hz
 
     while True:
         # Grab a single frame of video
         ret, frame = video_capture.read()
-        # os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
-
-
-
-
 
         # Resize frame of video to 1/4 size for faster face recognition processing
         small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
@@ -139,7 +137,6 @@ def face_rec(mode):
                     name = known_face_names[first_match_index]
 
                 face_names.append(name)
-                print(face_names)
 
         process_this_frame = not process_this_frame
 
@@ -169,9 +166,23 @@ def face_rec(mode):
 
             global face_change
             if name != "Unknown" and name is not None:
+                current_emoji = 'good'
                 image = cv2.imread("images/love.png", -1)
             else:
+                # play just one time if face emoji is changing
                 image = cv2.imread(unknown_face_emoji, -1)
+                if current_emoji != 'bad' and mode != "neutral":
+                    try:
+                        play_sys_audio_thread.terminate()
+                    except:
+                        print("play_sys_audio_thread not started")
+                    try:
+                        play_sys_audio_thread = Process(target=play_sys_audio)
+                        play_sys_audio_thread.start()
+                    except:
+                        print("play_sys_audio_thread not terminated")
+
+                current_emoji = 'bad'
 
             emoji = cv2.resize(image, (right-left, bottom-top))
 
@@ -207,20 +218,16 @@ def face_rec(mode):
             # bounding box surrounding the barcode on the image
             (x, y, w, h) = barcode.rect
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 6)
-            print()
             barcodeData = barcode.data.decode("utf-8")
             cv2.putText(frame, barcodeData + "-Validated", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, (0, 255, 0), 2)
 
-            # print the barcode type and data to the terminal
-            print(barcodeData)
             # TODO use regex to detect "userX" string
             if len(barcodeData) == 5 and barcodeData not in known_face_names:
                 # if barcode data has a number ex. user3 -> 3
                 index = int(list(filter(str.isdigit, barcodeData))[0])
                 if index > 0 and index < 6:
                     known_face_names.insert(index-1, barcodeData)
-            print(known_face_names)
 
 
         # Display the resulting image
@@ -229,18 +236,13 @@ def face_rec(mode):
 
         key = cv2.waitKey(33)
 
-        print(key)
-
         if key > 0:
             key_as_int = int(key) - 48
-            # print (key_as_int)
-            # print (key_as_int in [1,2,3,4,5])
             if key_as_int in [1,2,3,4,5]:
                 if known_face_names[key_as_int - 1] is not None:
                     known_face_names[key_as_int - 1] = None
                 else:
                     known_face_names[key_as_int - 1] = "user" + str(key_as_int)
-            print(known_face_names)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):

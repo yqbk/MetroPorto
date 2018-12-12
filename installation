@@ -3,3 +3,5 @@ With Linux Debian + anaconda:
 -conda install -c loopbio pkg-config
 
 ... not finished
+
+sudo apt install sox / sudo port install sox
