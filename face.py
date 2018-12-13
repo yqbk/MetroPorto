@@ -171,7 +171,7 @@ def face_rec(mode):
             else:
                 # play just one time if face emoji is changing
                 image = cv2.imread(unknown_face_emoji, -1)
-                if current_emoji != 'bad' and mode != "neutral":
+                if mode != "neutral":
                     try:
                         play_sys_audio_thread.terminate()
                     except:
