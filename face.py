@@ -8,16 +8,6 @@ from pynput import keyboard
 from pyzbar import pyzbar
 
 
-
-# This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
-# other example, but it includes some basic performance tweaks to make things run a lot faster:
-#   1. Process each video frame at 1/4 resolution (though still display it at full resolution)
-#   2. Only detect faces in every other frame of video.
-
-# PLEASE NOTE: This example requires cv2 (the `cv2` library) to be installed only to read from your webcam.
-# cv2 is *not* required to use the face_recognition library. It's only required if you want to run this
-# specific demo. If you have trouble installing it, try any of the other demos that don't require it instead.
-
 ######################################################################
 #
 # Init variables - used as ''global''
@@ -28,8 +18,6 @@ from pyzbar import pyzbar
 video_capture = cv2.VideoCapture(0)
 
 # Load a sample picture and learn how to recognize it.
-# obama_image = face_recognition.load_image_file("/images/user-2.jpg")
-# obama_image = face_recognition.load_image_file("user-2.jpg")
 u1_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user1.jpg"))[0]
 u2_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user2.jpg"))[0]
 u3_face_encoding = face_recognition.face_encodings(face_recognition.load_image_file("images/user3.jpg"))[0]
@@ -149,11 +137,6 @@ def face_rec(mode):
             bottom *= 4
             left *= 4
 
-            # Draw a box around the face
-            # cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-
-            # Draw a label with a name below the face
-            # cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
             cv2.putText(frame, name, (left + 10, bottom + 15), font, 1.0, (255, 255, 255), 1)
 
@@ -199,15 +182,6 @@ def face_rec(mode):
                     frame[y1:y2, x1:x2, c] = (alpha_s * emoji[:, :, c] + alpha_l * frame[y1:y2, x1:x2, c])            
             except:
               print("An exception occurred")
- 
-
-            # frame = cv2.add(frame, emoji)
-            # x_offset=y_offset=50
-            # frame[y_offset:y_offset+emoji.shape[0], x_offset:x_offset+emoji.shape[1]] = emoji
-
-            # cv2.imwrite(emoji, frame)
-
-
 
         ######################################################################
         # Barcode detection
@@ -267,13 +241,3 @@ if __name__ == "__main__":
         face_rec(str(sys.argv[1]))
     else:
         face_rec("")
-    # face_rec_thread = threading.Thread(target=face_rec)
-    # face_rec_thread.daemon = True
-
-    # listener.start()
-    # face_rec_thread.start()
-    # server_app.start()
-
-    # listener.join()
-    # face_rec_thread.join()
-    # server_app.join()
